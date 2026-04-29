@@ -113,14 +113,14 @@ export default function Landing() {
                     </div>
                 </div>
 
-                {/* ── MOBILE LAYOUT: content at bottom like Tinder ── */}
+                {/* ── MOBILE LAYOUT: content at bottom ── */}
                 <div className="md:hidden relative z-10 flex-1" />
 
-                <div className={`md:hidden relative z-20 px-5 pb-10 flex flex-col gap-3 transition-all duration-700 delay-200 m-auto ${loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
+                <div className={`md:hidden relative z-20 px-5 pb-10 flex flex-col items-center justify-end gap-3 transition-all duration-700 delay-200 ${loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
 
                     {/* Mobile headline */}
                     <h1
-                        className="text-white font-black tracking-tighter leading-tight text-center mb-3"
+                        className="text-white font-black tracking-tighter leading-tight text-center mb-3 w-full"
                         style={{
                             fontFamily: "'Playfair Display', serif",
                             fontSize: 'clamp(3rem, 14vw, 4.5rem)',
@@ -132,7 +132,7 @@ export default function Landing() {
                     {/* Mobile primary button */}
                     <Link
                         to="/register"
-                        className="w-[80%] h-[40px] flex items-center justify-center text-center bg-white text-black font-bold rounded-full"
+                        className="w-full max-w-[320px] h-[52px] flex items-center justify-center bg-white text-black font-bold rounded-full transition-transform active:scale-95"
                     >
                         Create account
                     </Link>
@@ -140,21 +140,22 @@ export default function Landing() {
                     {/* Mobile secondary button */}
                     <Link
                         to="/login"
-                        className="w-full flex items-center justify-center border-2 border-white/30 hover:border-white/60 text-white font-bold text-lg py-4 rounded-2xl active:scale-[0.98] transition-all duration-150 hover:bg-white/5"
+                        className="w-full max-w-[320px] h-[52px] flex items-center justify-center bg-white text-black font-bold rounded-full transition-transform active:scale-95"
                     >
                         Log in
                     </Link>
 
                     {/* Mobile trust + online indicator */}
-                    <p className="text-center text-white/30 text-xs font-medium mt-1">
-                        One-time payment of £500 · Lifetime access · No subscriptions
-                    </p>
-                    <div className="flex items-center justify-center gap-2 mt-1">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                        <span className="text-white/30 text-[11px] font-medium tracking-wide">Members active now</span>
+                    <div className="text-center mt-2">
+                        <p className="text-white/30 text-xs font-medium">
+                            One-time payment of £500 · Lifetime access · No subscriptions
+                        </p>
+                        <div className="flex items-center justify-center gap-2 mt-2">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                            <span className="text-white/30 text-[11px] font-medium tracking-wide">Members active now</span>
+                        </div>
                     </div>
                 </div>
-
                 {/* ── Bottom stats bar — desktop only ── */}
                 <div className={`hidden md:block absolute bottom-0 left-0 right-0 z-20 border-t border-white/8 bg-black/30 backdrop-blur-md transition-all duration-700 delay-700 ${loaded ? 'opacity-100' : 'opacity-0'}`}>
                     <div className="flex items-center justify-between px-16 py-4 max-w-6xl mx-auto">
