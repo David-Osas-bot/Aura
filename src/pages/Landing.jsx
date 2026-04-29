@@ -85,23 +85,23 @@ export default function Landing() {
                         No algorithm. No approval. No swiping.<br />
                         Just real people who paid to be here — same as you.
                     </p>
-
+                    <br />
                     <div className={`mt-10 flex items-center gap-4 transition-all duration-700 delay-[400ms] ${loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
                         <Link
                             to="/register"
-                            className="group inline-flex items-center gap-3 bg-white text-black font-bold text-base px-10 py-4 rounded-full hover:bg-white/90 hover:scale-[1.03] hover:shadow-[0_0_80px_rgba(255,255,255,0.12)] transition-all duration-200"
+                            className="w-[150px] h-[40px] flex items-center justify-center text-center bg-white text-black font-bold rounded-full"
                         >
                             Create account
                             <span className="group-hover:translate-x-1 transition-transform duration-200">→</span>
                         </Link>
                         <Link
                             to="/login"
-                            className="inline-flex items-center gap-2 border-2 border-white/25 hover:border-white/60 text-white font-bold text-base px-10 py-4 rounded-full hover:bg-white/5 transition-all duration-200"
+                            className="w-[100px] h-[40px] flex items-center justify-center text-center bg-white text-black font-bold rounded-full"
                         >
                             Log in
                         </Link>
                     </div>
-
+                    <br />
                     {/* Trust indicators */}
                     <div className={`mt-10 flex items-center gap-8 transition-all duration-700 delay-500 ${loaded ? 'opacity-100' : 'opacity-0'}`}>
                         {['One-time payment of £500', 'Lifetime access', 'No subscriptions'].map((text, i) => (
@@ -116,7 +116,7 @@ export default function Landing() {
                 {/* ── MOBILE LAYOUT: content at bottom like Tinder ── */}
                 <div className="md:hidden relative z-10 flex-1" />
 
-                <div className={`md:hidden relative z-20 px-5 pb-10 flex flex-col gap-3 transition-all duration-700 delay-200 ${loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
+                <div className={`md:hidden relative z-20 px-5 pb-10 flex flex-col gap-3 transition-all duration-700 delay-200 m-auto ${loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
 
                     {/* Mobile headline */}
                     <h1
@@ -132,7 +132,7 @@ export default function Landing() {
                     {/* Mobile primary button */}
                     <Link
                         to="/register"
-                        className="w-full flex items-center justify-center bg-white text-black font-bold text-lg py-4 rounded-2xl hover:bg-white/92 active:scale-[0.98] transition-all duration-150 shadow-lg"
+                        className="w-[80%] h-[40px] flex items-center justify-center text-center bg-white text-black font-bold rounded-full"
                     >
                         Create account
                     </Link>
