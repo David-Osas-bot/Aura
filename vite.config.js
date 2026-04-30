@@ -10,7 +10,7 @@ export default defineConfig({
   server: {
     port: 3000,
     proxy: {
-      "/api": "https://aura-production-86d4.up.railway.app",
+      "/api": "https://aura-production-40f7.up.railway.app",
     },
   },
 });
