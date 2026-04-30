@@ -113,10 +113,10 @@ export default function Landing() {
                     </div>
                 </div>
 
-                {/* ── MOBILE LAYOUT: content at bottom ── */}
+                {/* ── MOBILE LAYOUT ── */}
                 <div className="md:hidden relative z-10 flex-1" />
 
-                <div className={`md:hidden relative z-20 px-5 pb-10 flex flex-col items-center justify-end gap-3 transition-all duration-700 delay-200 ${loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
+                <div className={`md:hidden relative z-20 px-5 pb-10 flex flex-col items-center gap-3 transition-all duration-700 delay-200 ${loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
 
                     {/* Mobile headline */}
                     <h1
@@ -129,7 +129,7 @@ export default function Landing() {
                         Find Your <span className="italic text-white/30">Match</span>™
                     </h1>
 
-                    {/* Mobile primary button */}
+                    {/* Create Account - Solid White */}
                     <Link
                         to="/register"
                         className="w-full max-w-[320px] h-[52px] flex items-center justify-center bg-white text-black font-bold rounded-full transition-transform active:scale-95"
@@ -137,7 +137,7 @@ export default function Landing() {
                         Create account
                     </Link>
 
-                    {/* Mobile secondary button */}
+                    {/* Log in - NOW MATCHES EXACTLY */}
                     <Link
                         to="/login"
                         className="w-full max-w-[320px] h-[52px] flex items-center justify-center bg-white text-black font-bold rounded-full transition-transform active:scale-95"
@@ -145,18 +145,17 @@ export default function Landing() {
                         Log in
                     </Link>
 
-                    {/* Mobile trust + online indicator */}
+                    {/* Trust Footer */}
                     <div className="text-center mt-2">
-                        <p className="text-white/30 text-xs font-medium">
-                            One-time payment of £500 · Lifetime access · No subscriptions
+                        <p className="text-white/30 text-[10px] font-medium uppercase tracking-wider">
+                            One-time payment · Lifetime access
                         </p>
                         <div className="flex items-center justify-center gap-2 mt-2">
                             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                             <span className="text-white/30 text-[11px] font-medium tracking-wide">Members active now</span>
                         </div>
                     </div>
-                </div>
-                {/* ── Bottom stats bar — desktop only ── */}
+                </div>                {/* ── Bottom stats bar — desktop only ── */}
                 <div className={`hidden md:block absolute bottom-0 left-0 right-0 z-20 border-t border-white/8 bg-black/30 backdrop-blur-md transition-all duration-700 delay-700 ${loaded ? 'opacity-100' : 'opacity-0'}`}>
                     <div className="flex items-center justify-between px-16 py-4 max-w-6xl mx-auto">
                         {[
@@ -187,3 +186,19 @@ export default function Landing() {
         </>
     );
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

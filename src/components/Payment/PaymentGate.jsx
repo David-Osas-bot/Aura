@@ -22,13 +22,20 @@ export default function PaymentGate() {
         try {
             const token = await auth.currentUser.getIdToken();
 
-            const res = await fetch('http://localhost:4000/api/payment/create-checkout', {
+            // const res = await fetch('http://localhost:4000/api/payment/create-checkout', {
+            //     method: 'POST',
+            //     headers: {
+            //         'Content-Type': 'application/json',
+            //         Authorization: `Bearer ${token}`,
+            //     },
+            // });
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/payment/create-checkout`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     Authorization: `Bearer ${token}`,
                 },
-            });
+            }); 
 
             if (!res.ok) {
                 const data = await res.json();

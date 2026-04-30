@@ -18,7 +18,7 @@ export default function Onboarding() {
 
         setVerifying(true);
         auth.currentUser.getIdToken().then(async (token) => {
-            const res = await fetch(`/api/payment/verify/${checkoutId}`, {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/payment/verify/${checkoutId}`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
             const data = await res.json();
