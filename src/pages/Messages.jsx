@@ -50,7 +50,7 @@ export default function Messages() {
             });
             setText('');
             if (textareaRef.current) {
-                textareaRef.current.style.height = 'auto';
+                textareaRef.current.style.height = '48px';
             }
         } finally {
             setSending(false);
@@ -67,8 +67,8 @@ export default function Messages() {
 
     const handleTextChange = (e) => {
         setText(e.target.value);
-        e.target.style.height = 'auto';
-        e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px';
+        e.target.style.height = '48px';
+        e.target.style.height = Math.min(e.target.scrollHeight, 140) + 'px';
     };
 
     const formatTime = (ts) => {
@@ -85,243 +85,597 @@ export default function Messages() {
         yesterday.setDate(yesterday.getDate() - 1);
         if (date.toDateString() === today.toDateString()) return 'Today';
         if (date.toDateString() === yesterday.toDateString()) return 'Yesterday';
-        return date.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
+        return date.toLocaleDateString('en-US', {
+            weekday: 'long', month: 'short', day: 'numeric',
+        });
     };
 
-    // Group messages by date
-    let lastDate = null;
-
     return (
-        <div
-            className="flex flex-col bg-[#080810] text-white"
-            style={{ height: '100dvh' }}
-        >
+        <>
+            <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap');
 
-            {/* ── Header ── */}
-            <div className="flex-shrink-0 flex items-center gap-3 px-4 py-3 sm:px-6 border-b border-white/8 bg-[#080810]/95 backdrop-blur-md">
+        .msg-page * { font-family: 'DM Sans', sans-serif; box-sizing: border-box; }
 
-                {/* Back button */}
-                <button
-                    onClick={() => navigate(-1)}
-                    className="w-9 h-9 flex items-center justify-center rounded-full bg-white/6 hover:bg-white/12 border border-white/10 text-white/70 hover:text-white transition-all duration-200 flex-shrink-0"
-                >
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-                    </svg>
-                </button>
+        .msg-page {
+          display: flex;
+          flex-direction: column;
+          height: 100dvh;
+          background: #08080f;
+          color: #fff;
+          overflow: hidden;
+        }
 
-                {/* User info */}
-                {otherUser ? (
-                    <div
-                        className="flex items-center gap-3 flex-1 cursor-pointer group"
-                        onClick={() => navigate(`/profile/${otherUserId}`)}
-                    >
-                        <div className="relative flex-shrink-0">
-                            <div className="w-10 h-10 rounded-full overflow-hidden border border-white/15 bg-white/8">
+        /* ── Header ── */
+        .msg-head {
+          flex-shrink: 0;
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          padding: 14px 20px;
+          background: rgba(8,8,15,0.96);
+          border-bottom: 1px solid rgba(255,255,255,0.07);
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
+        }
+
+        .msg-back {
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          background: rgba(255,255,255,0.06);
+          border: 1px solid rgba(255,255,255,0.1);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          color: rgba(255,255,255,0.7);
+          transition: all 0.2s;
+          flex-shrink: 0;
+        }
+
+        .msg-back:hover {
+          background: rgba(255,255,255,0.12);
+          color: #fff;
+          transform: translateX(-2px);
+        }
+
+        .msg-user-info {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          flex: 1;
+          min-width: 0;
+          cursor: pointer;
+        }
+
+        .msg-avatar-wrap {
+          position: relative;
+          flex-shrink: 0;
+        }
+
+        .msg-avatar {
+          width: 44px;
+          height: 44px;
+          border-radius: 50%;
+          object-fit: cover;
+          border: 2px solid rgba(255,255,255,0.12);
+          background: rgba(255,255,255,0.06);
+          display: block;
+        }
+
+        .msg-avatar-placeholder {
+          width: 44px;
+          height: 44px;
+          border-radius: 50%;
+          background: rgba(255,255,255,0.08);
+          border: 2px solid rgba(255,255,255,0.1);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-weight: 700;
+          font-size: 16px;
+          color: rgba(255,255,255,0.5);
+        }
+
+        .msg-online-dot {
+          position: absolute;
+          bottom: 1px;
+          right: 1px;
+          width: 11px;
+          height: 11px;
+          background: #34d399;
+          border-radius: 50%;
+          border: 2px solid #08080f;
+        }
+
+        .msg-name-block { min-width: 0; }
+
+        .msg-name {
+          font-size: 15px;
+          font-weight: 600;
+          color: #fff;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        .msg-status {
+          font-size: 11px;
+          color: #34d399;
+          font-weight: 500;
+          margin-top: 1px;
+        }
+
+        .msg-profile-btn {
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          background: rgba(255,255,255,0.06);
+          border: 1px solid rgba(255,255,255,0.1);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          color: rgba(255,255,255,0.5);
+          transition: all 0.2s;
+          flex-shrink: 0;
+        }
+
+        .msg-profile-btn:hover {
+          background: rgba(255,255,255,0.12);
+          color: #fff;
+        }
+
+        /* Skeleton */
+        .msg-skeleton-avatar {
+          width: 44px;
+          height: 44px;
+          border-radius: 50%;
+          background: rgba(255,255,255,0.06);
+          animation: shimmer 1.5s ease infinite;
+        }
+
+        .msg-skeleton-text {
+          height: 12px;
+          width: 100px;
+          border-radius: 6px;
+          background: rgba(255,255,255,0.06);
+          animation: shimmer 1.5s ease infinite;
+        }
+
+        @keyframes shimmer {
+          0%, 100% { opacity: 0.4; }
+          50% { opacity: 0.8; }
+        }
+
+        /* ── Messages Area ── */
+        .msg-body {
+          flex: 1;
+          overflow-y: auto;
+          padding: 24px 20px;
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+          scroll-behavior: smooth;
+        }
+
+        .msg-body::-webkit-scrollbar { width: 4px; }
+        .msg-body::-webkit-scrollbar-track { background: transparent; }
+        .msg-body::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 4px; }
+
+        /* Empty state */
+        .msg-empty {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 16px;
+          padding: 40px;
+          text-align: center;
+        }
+
+        .msg-empty-avatar {
+          width: 72px;
+          height: 72px;
+          border-radius: 50%;
+          overflow: hidden;
+          border: 2px solid rgba(255,255,255,0.1);
+          background: rgba(255,255,255,0.04);
+        }
+
+        .msg-empty-avatar img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+
+        .msg-empty h3 {
+          font-size: 15px;
+          font-weight: 600;
+          color: #fff;
+          margin: 0 0 4px;
+        }
+
+        .msg-empty p {
+          font-size: 13px;
+          color: rgba(255,255,255,0.3);
+          margin: 0;
+        }
+
+        /* Date separator */
+        .msg-date-sep {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          margin: 20px 0 12px;
+        }
+
+        .msg-date-line {
+          flex: 1;
+          height: 1px;
+          background: rgba(255,255,255,0.06);
+        }
+
+        .msg-date-label {
+          font-size: 10px;
+          font-weight: 600;
+          color: rgba(255,255,255,0.2);
+          letter-spacing: 0.12em;
+          text-transform: uppercase;
+          white-space: nowrap;
+        }
+
+        /* Message rows */
+        .msg-row {
+          display: flex;
+          align-items: flex-end;
+          gap: 8px;
+        }
+
+        .msg-row.mine { flex-direction: row-reverse; }
+        .msg-row.theirs { flex-direction: row; }
+        .msg-row.group-start { margin-top: 12px; }
+        .msg-row.group-mid { margin-top: 2px; }
+
+        .msg-row-avatar {
+          width: 28px;
+          height: 28px;
+          border-radius: 50%;
+          overflow: hidden;
+          border: 1px solid rgba(255,255,255,0.1);
+          background: rgba(255,255,255,0.06);
+          flex-shrink: 0;
+          align-self: flex-end;
+        }
+
+        .msg-row-avatar img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+
+        .msg-row-avatar-spacer {
+          width: 28px;
+          flex-shrink: 0;
+        }
+
+        /* Bubble */
+        .msg-col {
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+          max-width: min(72%, 480px);
+        }
+
+        .msg-col.mine { align-items: flex-end; }
+        .msg-col.theirs { align-items: flex-start; }
+
+        .msg-bubble {
+          padding: 10px 16px;
+          font-size: 14px;
+          line-height: 1.55;
+          word-break: break-word;
+          white-space: pre-wrap;
+        }
+
+        .msg-bubble.mine {
+          background: #fff;
+          color: #0a0a0a;
+          border-radius: 20px 20px 6px 20px;
+        }
+
+        .msg-bubble.theirs {
+          background: rgba(255,255,255,0.07);
+          color: #fff;
+          border: 1px solid rgba(255,255,255,0.08);
+          border-radius: 20px 20px 20px 6px;
+        }
+
+        .msg-bubble.mine.group-mid {
+          border-radius: 8px 8px 6px 8px;
+        }
+
+        .msg-bubble.theirs.group-mid {
+          border-radius: 8px 8px 8px 6px;
+        }
+
+        .msg-time {
+          font-size: 10px;
+          color: rgba(255,255,255,0.2);
+          padding: 0 4px;
+          margin-top: 2px;
+        }
+
+        /* ── Input Bar ── */
+        .msg-footer {
+          flex-shrink: 0;
+          padding: 16px 20px 20px;
+          border-top: 1px solid rgba(255,255,255,0.07);
+          background: rgba(8,8,15,0.98);
+        }
+
+        .msg-input-row {
+          display: flex;
+          align-items: flex-end;
+          gap: 12px;
+          max-width: 860px;
+          margin: 0 auto;
+        }
+
+        .msg-textarea-wrap { flex: 1; }
+
+        .msg-textarea {
+          width: 100%;
+          height: 48px;
+          max-height: 140px;
+          resize: none;
+          overflow: hidden;
+          background: rgba(255,255,255,0.05);
+          border: 1.5px solid rgba(255,255,255,0.1);
+          border-radius: 24px;
+          padding: 12px 20px;
+          color: #fff;
+          font-size: 14px;
+          font-family: 'DM Sans', sans-serif;
+          line-height: 1.5;
+          outline: none;
+          transition: border-color 0.2s, background 0.2s;
+          display: block;
+        }
+
+        .msg-textarea::placeholder { color: rgba(255,255,255,0.22); }
+
+        .msg-textarea:hover {
+          background: rgba(255,255,255,0.07);
+          border-color: rgba(255,255,255,0.16);
+        }
+
+        .msg-textarea:focus {
+          background: rgba(255,255,255,0.08);
+          border-color: rgba(255,255,255,0.28);
+        }
+
+        .msg-send {
+          width: 48px;
+          height: 48px;
+          border-radius: 50%;
+          background: #fff;
+          border: none;
+          color: #000;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          flex-shrink: 0;
+          transition: all 0.18s;
+          box-shadow: 0 4px 20px rgba(255,255,255,0.12);
+        }
+
+        .msg-send:hover:not(:disabled) {
+          background: rgba(255,255,255,0.9);
+          transform: scale(1.06);
+          box-shadow: 0 6px 28px rgba(255,255,255,0.18);
+        }
+
+        .msg-send:active:not(:disabled) { transform: scale(0.96); }
+
+        .msg-send:disabled {
+          opacity: 0.22;
+          cursor: not-allowed;
+          transform: none;
+        }
+
+        .msg-hint {
+          text-align: center;
+          font-size: 10px;
+          color: rgba(255,255,255,0.12);
+          margin-top: 10px;
+          letter-spacing: 0.02em;
+        }
+
+        /* Responsive */
+        @media (max-width: 640px) {
+          .msg-head { padding: 12px 16px; }
+          .msg-body { padding: 16px; }
+          .msg-footer { padding: 12px 16px 16px; }
+          .msg-col { max-width: 82%; }
+          .msg-hint { display: none; }
+        }
+
+        @media (min-width: 1024px) {
+          .msg-body { padding: 32px 40px; }
+          .msg-footer { padding: 20px 40px 28px; }
+        }
+
+        /* Spin animation */
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .spin { animation: spin 0.7s linear infinite; }
+      `}</style>
+
+            <div className="msg-page">
+
+                {/* ── HEADER ── */}
+                <div className="msg-head">
+                    <button className="msg-back" onClick={() => navigate(-1)}>
+                        <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                        </svg>
+                    </button>
+
+                    {otherUser ? (
+                        <div
+                            className="msg-user-info"
+                            onClick={() => navigate(`/profile/${otherUserId}`)}
+                        >
+                            <div className="msg-avatar-wrap">
                                 {otherUser.photos?.[0] ? (
-                                    <img
-                                        src={otherUser.photos[0]}
-                                        alt={otherUser.displayName}
-                                        className="w-full h-full object-cover"
-                                    />
+                                    <img src={otherUser.photos[0]} alt="" className="msg-avatar" />
                                 ) : (
-                                    <div className="w-full h-full flex items-center justify-center text-white/40 font-bold text-sm">
-                                        {otherUser.displayName?.[0]?.toUpperCase()}
+                                    <div className="msg-avatar-placeholder">
+                                        {otherUser.displayName?.[0]?.toUpperCase() || '?'}
+                                    </div>
+                                )}
+                                <span className="msg-online-dot" />
+                            </div>
+                            <div className="msg-name-block">
+                                <div className="msg-name">{otherUser.displayName}</div>
+                                <div className="msg-status">Active now</div>
+                            </div>
+                        </div>
+                    ) : (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 12, flex: 1 }}>
+                            <div className="msg-skeleton-avatar" />
+                            <div className="msg-skeleton-text" />
+                        </div>
+                    )}
+
+                    <button
+                        className="msg-profile-btn"
+                        onClick={() => navigate(`/profile/${otherUserId}`)}
+                        title="View profile"
+                    >
+                        <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                    </button>
+                </div>
+
+                {/* ── MESSAGES ── */}
+                <div className="msg-body">
+
+                    {messages.length === 0 && (
+                        <div className="msg-empty">
+                            <div className="msg-empty-avatar">
+                                {otherUser?.photos?.[0] ? (
+                                    <img src={otherUser.photos[0]} alt="" />
+                                ) : (
+                                    <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28 }}>
+                                        💬
                                     </div>
                                 )}
                             </div>
-                            {/* Online dot */}
-                            <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-400 border-2 border-[#080810] rounded-full" />
+                            <div>
+                                <h3>Say hello to {otherUser?.displayName || 'them'}</h3>
+                                <p>Your messages are private and secure 🔒</p>
+                            </div>
                         </div>
+                    )}
 
-                        <div className="flex flex-col min-w-0">
-                            <span className="font-semibold text-sm text-white group-hover:text-white/80 transition-colors truncate">
-                                {otherUser.displayName}
-                            </span>
-                            <span className="text-[10px] text-emerald-400 font-medium">Active now</span>
-                        </div>
-                    </div>
-                ) : (
-                    <div className="flex items-center gap-3 flex-1">
-                        <div className="w-10 h-10 rounded-full bg-white/6 animate-pulse" />
-                        <div className="h-3 w-24 bg-white/6 rounded animate-pulse" />
-                    </div>
-                )}
-
-                {/* View profile button */}
-                <button
-                    onClick={() => navigate(`/profile/${otherUserId}`)}
-                    className="flex-shrink-0 w-9 h-9 flex items-center justify-center rounded-full bg-white/6 hover:bg-white/12 border border-white/10 text-white/50 hover:text-white transition-all duration-200"
-                    title="View profile"
-                >
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                    </svg>
-                </button>
-            </div>
-
-            {/* ── Message List ── */}
-            <div className="flex-1 overflow-y-auto px-4 py-4 sm:px-6">
-
-                {/* Empty state */}
-                {messages.length === 0 && (
-                    <div className="flex flex-col items-center justify-center h-full gap-4 py-20">
-                        <div className="w-16 h-16 rounded-full overflow-hidden border border-white/10 bg-white/5">
-                            {otherUser?.photos?.[0] ? (
-                                <img src={otherUser.photos[0]} alt="" className="w-full h-full object-cover" />
-                            ) : (
-                                <div className="w-full h-full flex items-center justify-center text-2xl">💬</div>
-                            )}
-                        </div>
-                        <div className="text-center">
-                            <p className="text-white font-semibold text-sm mb-1">
-                                Start a conversation with {otherUser?.displayName || 'them'}
-                            </p>
-                            <p className="text-white/30 text-xs">
-                                Say hello — your message is private 🔒
-                            </p>
-                        </div>
-                    </div>
-                )}
-
-                {/* Messages */}
-                <div className="space-y-1">
                     {messages.map((m, i) => {
                         const isMine = m.from === uid;
-                        const prevMsg = messages[i - 1];
-                        const nextMsg = messages[i + 1];
-                        const isFirstInGroup = !prevMsg || prevMsg.from !== m.from;
-                        const isLastInGroup = !nextMsg || nextMsg.from !== m.from;
+                        const prev = messages[i - 1];
+                        const next = messages[i + 1];
+                        const isFirst = !prev || prev.from !== m.from;
+                        const isLast = !next || next.from !== m.from;
 
-                        // Date separator
                         const msgDate = m.createdAt ? formatDate(m.createdAt) : null;
-                        const prevDate = prevMsg?.createdAt ? formatDate(prevMsg.createdAt) : null;
+                        const prevDate = prev?.createdAt ? formatDate(prev.createdAt) : null;
                         const showDate = msgDate && msgDate !== prevDate;
 
                         return (
                             <div key={m.id}>
-                                {/* Date separator */}
                                 {showDate && (
-                                    <div className="flex items-center gap-3 py-4">
-                                        <div className="flex-1 h-px bg-white/8" />
-                                        <span className="text-white/25 text-[10px] font-semibold tracking-widest uppercase px-1">
-                                            {msgDate}
-                                        </span>
-                                        <div className="flex-1 h-px bg-white/8" />
+                                    <div className="msg-date-sep">
+                                        <div className="msg-date-line" />
+                                        <span className="msg-date-label">{msgDate}</span>
+                                        <div className="msg-date-line" />
                                     </div>
                                 )}
 
-                                {/* Message row */}
-                                <div className={`flex items-end gap-2 ${isMine ? 'flex-row-reverse' : 'flex-row'} ${isFirstInGroup ? 'mt-3' : 'mt-0.5'}`}>
+                                <div className={`msg-row ${isMine ? 'mine' : 'theirs'} ${isFirst ? 'group-start' : 'group-mid'}`}>
 
-                                    {/* Avatar */}
-                                    <div className="w-7 flex-shrink-0 self-end mb-0.5">
-                                        {!isMine && isLastInGroup && (
-                                            <div className="w-7 h-7 rounded-full overflow-hidden border border-white/15 bg-white/8">
-                                                {otherUser?.photos?.[0] ? (
-                                                    <img src={otherUser.photos[0]} alt="" className="w-full h-full object-cover" />
-                                                ) : (
-                                                    <div className="w-full h-full flex items-center justify-center text-white/40 text-xs font-bold">
+                                    {/* Avatar (theirs only, last in group) */}
+                                    {!isMine ? (
+                                        isLast ? (
+                                            <div className="msg-row-avatar">
+                                                {otherUser?.photos?.[0]
+                                                    ? <img src={otherUser.photos[0]} alt="" />
+                                                    : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.4)' }}>
                                                         {otherUser?.displayName?.[0]?.toUpperCase() || '?'}
                                                     </div>
-                                                )}
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    {/* Bubble + time */}
-                                    <div className={`flex flex-col gap-1 max-w-[78%] sm:max-w-[60%] ${isMine ? 'items-end' : 'items-start'}`}>
-                                        <div
-                                            className={`
-                        px-4 py-2.5 text-sm leading-relaxed break-words whitespace-pre-wrap
-                        ${isMine
-                                                    ? `bg-white text-black
-                             ${isFirstInGroup ? 'rounded-t-2xl' : 'rounded-t-lg'}
-                             ${isLastInGroup ? 'rounded-bl-2xl rounded-br-md' : 'rounded-b-lg'}`
-                                                    : `bg-white/8 text-white border border-white/8
-                             ${isFirstInGroup ? 'rounded-t-2xl' : 'rounded-t-lg'}
-                             ${isLastInGroup ? 'rounded-br-2xl rounded-bl-md' : 'rounded-b-lg'}`
                                                 }
-                      `}
-                                        >
+                                            </div>
+                                        ) : <div className="msg-row-avatar-spacer" />
+                                    ) : null}
+
+                                    {/* Bubble */}
+                                    <div className={`msg-col ${isMine ? 'mine' : 'theirs'}`}>
+                                        <div className={`msg-bubble ${isMine ? 'mine' : 'theirs'} ${!isFirst ? 'group-mid' : ''}`}>
                                             {m.text}
                                         </div>
 
-                                        {/* Time — only on last in group */}
-                                        {isLastInGroup && (
-                                            <span className="text-white/20 text-[10px] px-1 select-none">
-                                                {formatTime(m.createdAt)}
-                                            </span>
+                                        {isLast && (
+                                            <span className="msg-time">{formatTime(m.createdAt)}</span>
                                         )}
                                     </div>
+
                                 </div>
                             </div>
                         );
                     })}
+
+                    <div ref={bottomRef} style={{ height: 8 }} />
                 </div>
 
-                <div ref={bottomRef} className="h-2" />
-            </div>
+                {/* ── INPUT BAR ── */}
+                <div className="msg-footer">
+                    <div className="msg-input-row">
+                        <div className="msg-textarea-wrap">
+                            <textarea
+                                ref={textareaRef}
+                                value={text}
+                                onChange={handleTextChange}
+                                onKeyDown={handleKeyDown}
+                                placeholder="Type a message…"
+                                rows={1}
+                                className="msg-textarea"
+                            />
+                        </div>
 
-            {/* ── Input Bar ── */}
-            <div className="flex-shrink-0 border-t border-white/8 bg-[#080810] px-4 py-3 sm:px-6 sm:py-4">
-                <div className="flex items-end gap-3 max-w-4xl mx-auto">
-
-                    {/* Textarea */}
-                    <div className="flex-1">
-                        <textarea
-                            ref={textareaRef}
-                            value={text}
-                            onChange={handleTextChange}
-                            onKeyDown={handleKeyDown}
-                            placeholder="Type a message…"
-                            rows={1}
-                            className="
-                w-full resize-none overflow-hidden
-                bg-white/6 hover:bg-white/8
-                border border-white/10 hover:border-white/20 focus:border-white/25
-                rounded-2xl px-4 py-3
-                text-white text-sm leading-relaxed
-                placeholder:text-white/20
-                outline-none transition-all duration-200
-              "
-                            style={{ maxHeight: '120px' }}
-                        />
+                        <button
+                            onClick={handleSend}
+                            disabled={!text.trim() || sending}
+                            className="msg-send"
+                        >
+                            {sending ? (
+                                <svg className="spin" width="18" height="18" fill="none" viewBox="0 0 24 24">
+                                    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" opacity="0.25" />
+                                    <path fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" opacity="0.75" />
+                                </svg>
+                            ) : (
+                                <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14M12 5l7 7-7 7" />
+                                </svg>
+                            )}
+                        </button>
                     </div>
 
-                    {/* Send button */}
-                    <button
-                        onClick={handleSend}
-                        disabled={!text.trim() || sending}
-                        className="
-              flex-shrink-0 w-11 h-11 rounded-full
-              bg-white text-black
-              flex items-center justify-center
-              hover:bg-white/90 active:scale-95
-              disabled:opacity-25 disabled:cursor-not-allowed disabled:active:scale-100
-              transition-all duration-150
-              shadow-lg shadow-white/10
-            "
-                    >
-                        {sending ? (
-                            <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
-                            </svg>
-                        ) : (
-                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14M12 5l7 7-7 7" />
-                            </svg>
-                        )}
-                    </button>
+                    <p className="msg-hint">Enter to send · Shift+Enter for new line</p>
                 </div>
 
-                {/* Hint — desktop only */}
-                <p className="text-center text-white/12 text-[10px] mt-2 hidden sm:block select-none">
-                    Enter to send · Shift+Enter for new line
-                </p>
             </div>
-
-        </div>
+        </>
     );
 }
