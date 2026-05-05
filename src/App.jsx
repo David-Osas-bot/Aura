@@ -8,9 +8,33 @@ import Messages from './pages/Messages';
 import Register from './components/Auth/Register';
 import Login from './components/Auth/Login';
 
+
 function PrivateRoute({ children }) {
-  const { user, userData, loading } = useAuth();
-  if (loading) return <div className="loader">Loading…</div>;
+  const { user, userData, loading, dataLoading } = useAuth();
+
+  // Wait for BOTH auth AND firestore to finish loading
+  if (loading || dataLoading) {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        background: '#08080f',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}>
+        <div style={{
+          width: 32,
+          height: 32,
+          borderRadius: '50%',
+          border: '2px solid rgba(255,255,255,0.08)',
+          borderTopColor: '#fff',
+          animation: 'spin 0.8s linear infinite',
+        }} />
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      </div>
+    );
+  }
+
   if (!user) return <Navigate to="/login" />;
   if (!userData?.paid) return <Navigate to="/onboarding" />;
   if (!userData?.profileComplete) return <Navigate to="/onboarding" />;
