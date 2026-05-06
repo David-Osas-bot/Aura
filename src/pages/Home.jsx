@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { db, auth } from '../firebase/config';
 import { collection, getDocs } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from "../contexts/AuthContext";
 
 export default function Home() {
   const [profiles, setProfiles] = useState([]);
