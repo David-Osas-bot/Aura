@@ -8,7 +8,7 @@ export default function Home() {
   const [profiles, setProfiles] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-
+  const { currentUser } = useAuth();
   useEffect(() => {
     getDocs(collection(db, 'users')).then((snap) => {
       const all = snap.docs
