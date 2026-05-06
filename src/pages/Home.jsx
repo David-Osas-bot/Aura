@@ -4,31 +4,31 @@ import { collection, getDocs } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
 
 export default function Home() {
-    const [profiles, setProfiles] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const navigate = useNavigate();
+  const [profiles, setProfiles] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
-    useEffect(() => {
-        getDocs(collection(db, 'users')).then((snap) => {
-            const all = snap.docs
-                .map((d) => ({ id: d.id, ...d.data() }))
-                .filter((u) => u.profileComplete);
-            // Show ALL profiles including your own for testing
-            // In production change to: .filter((u) => u.profileComplete && u.id !== auth.currentUser.uid)
-            setProfiles(all);
-            setLoading(false);
-        }).catch(() => setLoading(false));
-    }, []);
+  useEffect(() => {
+    getDocs(collection(db, 'users')).then((snap) => {
+      const all = snap.docs
+        .map((d) => ({ id: d.id, ...d.data() }))
+        .filter((u) => u.profileComplete);
+      // Show ALL profiles including your own for testing
+      // In production change to: .filter((u) => u.profileComplete && u.id !== auth.currentUser.uid)
+      setProfiles(all);
+      setLoading(false);
+    }).catch(() => setLoading(false));
+  }, []);
 
-    if (loading) return (
-        <div style={styles.loader}>
-            <div style={styles.loaderDot} />
-        </div>
-    );
+  if (loading) return (
+    <div style={styles.loader}>
+      <div style={styles.loaderDot} />
+    </div>
+  );
 
-    return (
-        <>
-            <style>{`
+  return (
+    <>
+      <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap');
 
         * { box-sizing: border-box; }
@@ -314,115 +314,133 @@ export default function Home() {
         }
       `}</style>
 
-            <div className="home-wrap">
-                {/* Navbar */}
-                <nav className="home-nav">
-                    <div className="home-logo">aura</div>
-                    <div className="home-nav-right">
-                        <button className="nav-btn" onClick={() => navigate(`/profile/${auth.currentUser.uid}`)}>
-                            My Profile
-                        </button>
-                        <div className="nav-avatar">
-                            {profiles.find(p => p.id === auth.currentUser.uid)?.photos?.[0] && (
-                                <img src={profiles.find(p => p.id === auth.currentUser.uid).photos[0]} alt="" />
-                            )}
-                        </div>
-                    </div>
-                </nav>
-
-                {/* Header */}
-                <div className="home-header">
-                    <h1 className="home-title">Browse Members</h1>
-                    <p className="home-subtitle">
-                        {profiles.length} {profiles.length === 1 ? 'member' : 'members'} · Paid access only
-                    </p>
-                </div>
-
-                {/* Grid */}
-                <div className="home-grid">
-                    {profiles.length === 0 ? (
-                        <div className="home-empty">
-                            <span className="home-empty-icon">✦</span>
-                            <h3>You're the first one here</h3>
-                            <p>Share the app — new members will appear here once they join</p>
-                        </div>
-                    ) : (
-                        profiles.map((profile) => (
-                            <ProfileCard
-                                key={profile.id}
-                                profile={profile}
-                                onMessage={() => navigate(`/messages/${profile.id}`)}
-                                onView={() => navigate(`/profile/${profile.id}`)}
-                            />
-                        ))
-                    )}
-                </div>
+      <div className="home-wrap">
+        {/* Navbar */}
+        <nav className="home-nav">
+          <div className="home-logo">aura</div>
+          <div className="home-nav-right">
+            <button className="nav-btn" onClick={() => navigate(`/profile/${auth.currentUser.uid}`)}>
+              My Profile
+            </button>
+            <div className="nav-avatar">
+              {profiles.find(p => p.id === auth.currentUser.uid)?.photos?.[0] && (
+                <img src={profiles.find(p => p.id === auth.currentUser.uid).photos[0]} alt="" />
+              )}
             </div>
-        </>
-    );
+          </div>
+        </nav>
+
+        {/* Header */}
+        <div className="home-header">
+          <h1 className="home-title">Browse Members</h1>
+          <p className="home-subtitle">
+            {profiles.length} {profiles.length === 1 ? 'member' : 'members'} · Paid access only
+          </p>
+        </div>
+
+        {/* Grid */}
+        <div className="home-grid">
+          {profiles.length === 0 ? (
+            <div className="home-empty">
+              <span className="home-empty-icon">✦</span>
+              <h3>You're the first one here</h3>
+              <p>Share the app — new members will appear here once they join</p>
+            </div>
+          ) : (
+            profiles.map((profile) => (
+              <ProfileCard
+                key={profile.id}
+                profile={profile}
+                onMessage={() => navigate(`/messages/${profile.id}`)}
+                onView={() => navigate(`/profile/${profile.id}`)}
+              />
+            ))
+          )}
+        </div>
+      </div>
+    </>
+  );
 }
+
 
 function ProfileCard({ profile, onMessage, onView }) {
-    const [currentPhoto, setCurrentPhoto] = useState(0);
+  const [currentPhoto, setCurrentPhoto] = useState(0);
+  const { userData } = useAuth();
 
-    return (
-        <div className="pcard">
-            <img
-                src={profile.photos[currentPhoto]}
-                alt={profile.displayName}
-                className="pcard-img"
-            />
+  // Check if this profile has messaged the current user
+  const hasUnread = userData?.lastMessageFrom === profile.displayName
+    && userData?.unreadMessages > 0;
 
-            {/* Tap zones */}
-            <div
-                style={{ position: 'absolute', top: 0, left: 0, width: '40%', height: '80%', zIndex: 2 }}
-                onClick={() => setCurrentPhoto(p => p === 0 ? profile.photos.length - 1 : p - 1)}
-            />
-            <div
-                style={{ position: 'absolute', top: 0, right: 0, width: '40%', height: '80%', zIndex: 2 }}
-                onClick={() => setCurrentPhoto(p => p === profile.photos.length - 1 ? 0 : p + 1)}
-            />
+  return (
+    <div className="pcard" onClick={onView}>
+      <img
+        src={profile.photos[currentPhoto]}
+        alt={profile.displayName}
+        className="pcard-img"
+      />
+      {/* ... existing code ... */}
 
-            {/* Photo dots */}
-            {profile.photos.length > 1 && (
-                <div className="pcard-dots">
-                    {profile.photos.map((_, i) => (
-                        <div key={i} className={`pcard-dot ${i === currentPhoto ? 'active' : ''}`} />
-                    ))}
-                </div>
+      <div className="pcard-body">
+        <p className="pcard-name">{profile.displayName}</p>
+        <p className="pcard-bio">{profile.bio}</p>
+        <div className="pcard-actions">
+          {/* Message button with unread badge */}
+          <div style={{ position: 'relative', flex: 1 }}>
+            <button
+              className="pcard-msg-btn"
+              onClick={(e) => { e.stopPropagation(); onMessage(); }}
+            >
+              Message
+            </button>
+            {hasUnread && (
+              <span style={{
+                position: 'absolute',
+                top: -6,
+                right: -6,
+                width: 18,
+                height: 18,
+                borderRadius: '50%',
+                background: '#fff',
+                color: '#000',
+                fontSize: 10,
+                fontWeight: 800,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                border: '2px solid #08080f',
+                zIndex: 2,
+              }}>
+                {userData.unreadMessages > 9 ? '9+' : userData.unreadMessages}
+              </span>
             )}
+          </div>
 
-            <div className="pcard-gradient" />
-
-            <div className="pcard-body">
-                <p className="pcard-name">{profile.displayName}</p>
-                <p className="pcard-bio">{profile.bio}</p>
-                <div className="pcard-actions">
-                    <button className="pcard-msg-btn" onClick={(e) => { e.stopPropagation(); onMessage(); }}>
-                        Message
-                    </button>
-                    <button className="pcard-view-btn" onClick={(e) => { e.stopPropagation(); onView(); }}>
-                        →
-                    </button>
-                </div>
-            </div>
+          <button
+            className="pcard-view-btn"
+            onClick={(e) => { e.stopPropagation(); onView(); }}
+          >
+            →
+          </button>
         </div>
-    );
+      </div>
+    </div>
+  );
 }
 
+
 const styles = {
-    loader: {
-        minHeight: '100vh',
-        background: '#080810',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    loaderDot: {
-        width: 8,
-        height: 8,
-        borderRadius: '50%',
-        background: 'rgba(255,255,255,0.4)',
-        animation: 'pulse 1.2s ease infinite',
-    },
+  loader: {
+    minHeight: '100vh',
+    background: '#080810',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  loaderDot: {
+    width: 8,
+    height: 8,
+    borderRadius: '50%',
+    background: 'rgba(255,255,255,0.4)',
+    animation: 'pulse 1.2s ease infinite',
+  },
 };
