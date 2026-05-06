@@ -11,10 +11,17 @@ export default function Onboarding() {
     const navigate = useNavigate();
     const [verifying, setVerifying] = useState(false);
 
+    // Redirect to home if fully onboarded — inside useEffect, not render
+    useEffect(() => {
+        if (!dataLoading && !verifying && userData?.paid && userData?.profileComplete) {
+            navigate('/home', { replace: true });
+        }
+    }, [userData, dataLoading, verifying, navigate]);
+
     // After SumUp redirect, verify payment
     useEffect(() => {
         const checkoutId = searchParams.get('checkout_id');
-        if (!checkoutId || userData?.paid) return;
+        if (!checkoutId || userData?.paid || dataLoading) return;
 
         setVerifying(true);
         auth.currentUser?.getIdToken(true).then(async (token) => {
@@ -25,7 +32,7 @@ export default function Onboarding() {
                 );
                 const data = await res.json();
                 if (data.status !== 'PAID') {
-                    alert('Payment not confirmed yet. Please contact support.');
+                    alert('Payment not confirmed. Please contact support.');
                 }
             } catch (err) {
                 console.error('Verify error:', err);
@@ -33,10 +40,10 @@ export default function Onboarding() {
                 setVerifying(false);
             }
         });
-    }, [searchParams, userData]);
+    }, [searchParams, userData, dataLoading]);
 
-    // ← KEY FIX: Show loader while Firestore is still loading
-    if (dataLoading || verifying) {
+    // Show spinner while loading OR verifying OR about to redirect
+    if (dataLoading || verifying || (userData?.paid && userData?.profileComplete)) {
         return (
             <div style={{
                 minHeight: '100vh',
@@ -57,18 +64,19 @@ export default function Onboarding() {
                     animation: 'spin 0.8s linear infinite',
                 }} />
                 <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: 13 }}>
-                    {verifying ? 'Confirming payment…' : 'Loading your account…'}
+                    {verifying ? 'Confirming payment…' : 'Setting up your account…'}
                 </p>
                 <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
             </div>
         );
     }
 
-    // Only make decisions AFTER data is fully loaded
+    // Not paid yet → show payment gate
     if (!userData?.paid) return <PaymentGate />;
+
+    // Paid but no profile → show profile creation
     if (!userData?.profileComplete) return <CreateProfile />;
 
-    // All good — go to home
-    navigate('/home');
+    // Fallback spinner (should never reach here)
     return null;
 }
